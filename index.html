@@ -57,10 +57,11 @@
         right: 70px;
         background: white;
         color: black;
-        padding: 6px 10px;
+        padding: 5px 20px;
         border-radius: 10px;
         font-size: 20px;
-        max-width: 160px;
+        min-width: 100px;
+        max-width: 170px;
       }
 
       /* SQUARE OBJECTS */
@@ -147,15 +148,52 @@
       .shake {
         animation: shake 0.3s ease;
       }
+      #wave-screen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 999;
+
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s ease;
+      }
+
+      #wave-text {
+        padding: 20px;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+
+        /* Dynamic sizing */
+        font-size: clamp(32px, 8vw, 72px);
+        letter-spacing: 0.2em;
+
+        /* Smooth animation */
+        transform: scale(0.8);
+        transition: transform 0.5s ease;
+      }
+
+      #wave-screen.show {
+        opacity: 1;
+      }
+
+      #wave-screen.show #wave-text {
+        transform: scale(1);
+      }
     </style>
   </head>
 
   <body>
-    <!-- INTRO CUTSCENE -->
+    <!-- INTRO CUTSCENE 
     <div id="intro-gif">
       <img src="boss-kidnap.gif" alt="Boss kidnaps me" />
     </div>
-
+-->
     <!-- GAME -->
     <div id="game">
       <div id="boss-hp">
@@ -174,14 +212,18 @@
     </div>
 
     <script>
+      let wave = 1;
+      let waveIntroShown = false;
       const game = document.getElementById("game");
       const overlay = document.getElementById("overlay");
       const overlayText = document.getElementById("overlay-text");
       const nextBtn = document.getElementById("next");
       const speech = document.getElementById("speech");
+      const player = document.getElementById("player");
 
       let level = 1;
       let objects = [];
+      let lost = false;
 
       //////////////// INTRO //////////////////
       /*
@@ -190,7 +232,7 @@
         startLevel();
       }, 3000); // match GIF length
       */
-      document.getElementById("intro-gif").style.display = "none";
+      //document.getElementById("intro-gif").style.display = "none";
       startLevel();
 
       //////////////// GAME CORE //////////////////
@@ -206,7 +248,13 @@
 
       nextBtn.onclick = () => {
         overlay.style.display = "none";
-        level++;
+        if (lost) {
+          level = 1;
+          wave = 1;
+          waveIntroShown = false;
+        } else {
+          level++;
+        }
         startLevel();
       };
 
@@ -218,17 +266,52 @@
 
         if (level === 1) {
           level1(7);
-        } else if (level === 2) level2();
-        else if (level === 3) level3();
-        else if (level === 4) level1(18);
-        else if (level === 5) level5();
+        } else if (level === 2) {
+          console.log("nag run");
+          level2();
+        } else if (level === 3) level3();
+        else if (level === 4) level4();
         else endGame();
+      }
+
+      function showWaveScreen(whatText, waveNumber, callback) {
+        const screen = document.createElement("div");
+        screen.id = "wave-screen";
+
+        const text = document.createElement("div");
+        text.id = "wave-text";
+        text.innerText = `${whatText} ${waveNumber}`;
+
+        screen.appendChild(text);
+        document.body.appendChild(screen);
+
+        // Fade in
+        setTimeout(() => screen.classList.add("show"), 50);
+
+        // Hold → fade out → then start next wave
+        setTimeout(() => {
+          screen.classList.remove("show");
+
+          setTimeout(() => {
+            screen.remove();
+            callback(); // start next wave AFTER transition
+          }, 300);
+        }, 1900);
       }
 
       /* LEVEL 1 – Tap Enemies */
       function level1(enemyCnt) {
         speech.innerText = "Tap them before they reach the bottom!";
 
+        if (!waveIntroShown) {
+          waveIntroShown = true;
+
+          showWaveScreen("WAVE", wave, () => {
+            level1(enemyCnt); // restart level after intro
+          });
+
+          return; // stop execution for now
+        }
         // Add tap effect listeners
         function spawnTapEffect(x, y) {
           const effect = document.createElement("img");
@@ -322,6 +405,7 @@
               gameOver = true;
               clearInterval(moveInterval);
               showOverlay("Oh no! They got past you 💔");
+              lost = true;
             }
           }, 20);
 
@@ -332,7 +416,21 @@
             objects = objects.filter((o) => o !== e);
 
             if (!objects.length && !gameOver) {
-              showOverlay("Nice! Keep going!");
+              cleanupTapEffect();
+
+              if (wave === 3) {
+                showOverlay("Nice! Keep going!");
+              } else {
+                const nextEnemyCount = wave === 1 ? 15 : wave === 2 ? 25 : 0;
+
+                const nextWave = wave + 1;
+
+                showWaveScreen("WAVE", nextWave, () => {
+                  level1(nextEnemyCount);
+                });
+              }
+
+              wave++;
             }
           };
         }
@@ -340,53 +438,146 @@
 
       /* LEVEL 2 – Tap Barrier */
       function level2() {
-        speech.innerText = "Break it!";
+        speech.innerText = "I think the password is the date we first met";
+
+        if (!waveIntroShown) {
+          waveIntroShown = true;
+
+          showWaveScreen("Put the Correct Password to Pass", "", () => {});
+        }
+
+        let input = "";
+        let unlocked = false;
         let taps = 0;
+
+        // ====== DOOR ======
         const wall = document.createElement("div");
         wall.className = "enemy door";
         wall.style.top = "35vh";
-        wall.style.left = "25vw";
-        // INSERT IMAGE
-        const img = document.createElement("img");
-        img.src = "assets/door.png"; // or .png
-        img.style.width = "100%";
-        img.style.height = "100%";
-        img.style.pointerEvents = "none"; // VERY IMPORTANT
-        wall.appendChild(img);
+        wall.style.left = "15vw";
 
+        let doorImg = document.createElement("img");
+        doorImg.src = "assets/doorPassRes.png";
+
+        doorImg.style.pointerEvents = "none";
+        wall.appendChild(doorImg);
+
+        game.appendChild(wall);
+        objects.push(wall);
+
+        // ====== INPUT BUTTON ======
+        const keypadBtn = document.createElement("div");
+        keypadBtn.style.width = "20vw";
+        keypadBtn.style.height = "10vh";
+        keypadBtn.style.position = "absolute";
+        keypadBtn.style.bottom = "-20%";
+        keypadBtn.style.left = "50%";
+
+        // keypadBtn.style.background = "#222";
+
+        wall.appendChild(keypadBtn);
+
+        // ====== INPUT OVERLAY ======
+        const overlay = document.createElement("div");
+        overlay.style.position = "fixed";
+        overlay.style.inset = "0";
+        overlay.style.background = "rgba(0,0,0,0.8)";
+        overlay.style.display = "none";
+        overlay.style.alignItems = "center";
+        overlay.style.justifyContent = "center";
+        overlay.style.zIndex = "1000";
+
+        overlay.onclick = () => {
+          overlay.style.display = "none";
+        };
+
+        const panel = document.createElement("div");
+        panel.style.background = "#111";
+        panel.style.padding = "20px";
+        panel.style.borderRadius = "16px";
+        panel.style.width = "300px";
+        panel.style.textAlign = "center";
+        panel.onclick = (e) => {
+          e.stopPropagation();
+        };
+
+        const inputBox = document.createElement("input");
+        inputBox.type = "text";
+        inputBox.placeholder = "Type your answer...";
+        inputBox.style.width = "100%";
+        inputBox.style.fontSize = "18px";
+        inputBox.style.padding = "10px";
+        inputBox.style.marginBottom = "10px";
+        panel.appendChild(inputBox);
+
+        const btn = document.createElement("button");
+        btn.innerText = "OK";
+        btn.style.fontSize = "18px";
+        btn.style.padding = "10px 20px";
+
+        let correctAnswers = ["feb15", "feb 15", "2 15", "february 15"];
+
+        btn.onclick = () => {
+          const normalized = inputBox.value
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, " ");
+
+          if (correctAnswers.includes(normalized)) {
+            unlocked = true;
+            overlay.style.display = "none";
+            keypadBtn.remove();
+
+            doorImg.src = "assets/door.png";
+
+            speech.innerText = "You remembered… 💖 Break the door!";
+          } else {
+            panel.classList.add("shake");
+            setTimeout(() => panel.classList.remove("shake"), 300);
+            inputBox.value = "";
+          }
+        };
+
+        panel.appendChild(btn);
+        overlay.appendChild(panel);
+        document.body.appendChild(overlay);
+
+        keypadBtn.onclick = () => {
+          overlay.style.display = "flex";
+          inputBox.focus();
+        };
+
+        // ====== BREAK DOOR ======
         wall.onclick = () => {
+          if (!unlocked) return;
+
           wall.style.transform = "translateX(-20px)";
           setTimeout(() => (wall.style.transform = "none"), 100);
           taps++;
-          if (taps == 3) {
-            img.src = "assets/2door.png"; // or .png
-            img.style.width = "100%";
-            img.style.height = "100%";
-            img.style.pointerEvents = "none"; // VERY IMPORTANT
-            wall.appendChild(img);
-          } else if (taps == 6) {
-            img.src = "assets/finalDoor.png"; // or .png
-            img.style.width = "100%";
-            img.style.height = "100%";
-            img.style.pointerEvents = "none"; // VERY IMPORTANT
-            wall.appendChild(img);
-          }
+
+          if (taps === 3) doorImg.src = "assets/2door.png";
+          if (taps === 6) doorImg.src = "assets/finalDoor.png";
+
           if (taps >= 8) {
             wall.remove();
             showOverlay("You broke it!");
           }
         };
-        game.appendChild(wall);
-        objects.push(wall);
       }
 
       /* LEVEL 3 – Find the Correct Key */
-      /* LEVEL 3 – Find the Correct Key */
-      /* LEVEL 3 – Find the Correct Key */
-      function level3() {
-        speech.innerText = "Try the keys!";
 
-        const keyCount = 15;
+      function level3() {
+        speech.innerText = "Find the Correct Key, Bebe!";
+        if (!waveIntroShown) {
+          waveIntroShown = true;
+
+          showWaveScreen("Find the Correct Key to Open the Door", "", () => {});
+        }
+
+        player.style.top = "100px";
+
+        const keyCount = 20;
         const correct = Math.floor(Math.random() * keyCount);
 
         // TIMER BAR SETTINGS
@@ -430,7 +621,7 @@
         }, 100);
 
         // Door position
-        const lockX = 25;
+        const lockX = 15;
         const lockY = 35;
         const doorSafeRadius = 40;
 
@@ -448,8 +639,7 @@
 
         const img = document.createElement("img");
         img.src = "assets/keyDoor.png";
-        img.style.width = "100%";
-        img.style.height = "100%";
+
         img.style.pointerEvents = "none";
         lock.appendChild(img);
 
@@ -513,7 +703,7 @@
       }
 
       /* LEVEL 4 – Boss */
-      function level5() {
+      function level4() {
         speech.innerText = "Finish him!";
 
         const hpBar = document.getElementById("boss-hp");
