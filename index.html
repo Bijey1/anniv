@@ -291,7 +291,7 @@
         clearGame();
 
         if (level === 1) {
-          level1(7);
+          level1(9);
         } else if (level === 2) {
           console.log("nag run");
           level2();
@@ -385,7 +385,7 @@
         }, 3000); //Delay
 
         let gameOver = false;
-        const loseLine = 85; // vh
+        const loseLine = 95; // vh
         const enemyCount = enemyCnt;
 
         // Create horizontal lanes
@@ -416,7 +416,7 @@
           objects.push(e);
 
           // Slow downward movement
-          const speed = 0.1 + Math.random() * 0.09;
+          const speed = 0.1 + Math.random() * 0.15;
 
           const moveInterval = setInterval(() => {
             if (gameOver) {
@@ -447,7 +447,7 @@
               if (wave === 3) {
                 showOverlay("Nice! Keep going!");
               } else {
-                const nextEnemyCount = wave === 1 ? 15 : wave === 2 ? 25 : 0;
+                const nextEnemyCount = wave === 1 ? 19 : wave === 2 ? 30 : 0;
 
                 const nextWave = wave + 1;
 
