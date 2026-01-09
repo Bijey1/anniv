@@ -51,23 +51,17 @@
         font-weight: bold;
       }
 
-      #speech {
-        position: absolute;
-        top: 10px;
-        right: 70px;
-        background: white;
-        color: black;
-        padding: 5px 20px;
-        border-radius: 10px;
-        font-size: 20px;
-        min-width: 100px;
-        max-width: 170px;
-      }
-
       /* SQUARE OBJECTS */
       .enemy {
         position: absolute;
         width: 50px;
+        height: 50px;
+        z-index: 1;
+      }
+      .boss {
+        position: absolute;
+        width: 50px;
+        z-index: 2;
         height: 50px;
       }
 
@@ -108,7 +102,7 @@
 
       #boss-hp {
         position: absolute;
-        top: 10px;
+        top: 30px;
         left: 50%;
         transform: translateX(-50%);
         width: 70%;
@@ -185,6 +179,32 @@
       #wave-screen.show #wave-text {
         transform: scale(1);
       }
+
+      #speech {
+        position: absolute;
+        top: 10px;
+        right: 70px;
+        background: white;
+        color: black;
+        padding: 5px 20px;
+        border-radius: 10px;
+        font-size: 20px;
+        min-width: 100px;
+        max-width: 170px;
+      }
+      .enemy-speech {
+        position: absolute;
+        top: 10px;
+        right: 70px;
+        background: white;
+        color: black;
+        padding: 5px 20px;
+        font-weight: bold;
+        border-radius: 10px;
+        font-size: 20px;
+        min-width: 100px;
+        max-width: 170px;
+      }
     </style>
   </head>
 
@@ -200,7 +220,7 @@
         <div id="boss-hp-fill"></div>
       </div>
       <div id="player">
-        <img src="assets/bigSad.png" />
+        <img src="assets/caged.png" />
         <div id="speech">Help me!</div>
       </div>
     </div>
@@ -248,10 +268,16 @@
 
       nextBtn.onclick = () => {
         overlay.style.display = "none";
+        waveIntroShown = false;
         if (lost) {
-          level = 1;
-          wave = 1;
-          waveIntroShown = false;
+          if (level == 4) {
+            level = 4;
+            startLevel();
+          } else {
+            level = 1;
+            wave = 1;
+            waveIntroShown = false;
+          }
         } else {
           level++;
         }
@@ -442,7 +468,6 @@
 
         if (!waveIntroShown) {
           waveIntroShown = true;
-
           showWaveScreen("Put the Correct Password to Pass", "", () => {});
         }
 
@@ -450,34 +475,35 @@
         let unlocked = false;
         let taps = 0;
 
+        const correctCode = "0215";
+
         // ====== DOOR ======
         const wall = document.createElement("div");
         wall.className = "enemy door";
         wall.style.top = "35vh";
         wall.style.left = "15vw";
 
-        let doorImg = document.createElement("img");
+        const doorImg = document.createElement("img");
         doorImg.src = "assets/doorPassRes.png";
-
         doorImg.style.pointerEvents = "none";
         wall.appendChild(doorImg);
 
         game.appendChild(wall);
         objects.push(wall);
 
-        // ====== INPUT BUTTON ======
+        // ====== KEYPAD BUTTON (ON DOOR) ======
         const keypadBtn = document.createElement("div");
         keypadBtn.style.width = "20vw";
         keypadBtn.style.height = "10vh";
         keypadBtn.style.position = "absolute";
         keypadBtn.style.bottom = "-20%";
         keypadBtn.style.left = "50%";
-
-        // keypadBtn.style.background = "#222";
+        keypadBtn.style.transform = "translateX(-50%)";
+        keypadBtn.style.cursor = "pointer";
 
         wall.appendChild(keypadBtn);
 
-        // ====== INPUT OVERLAY ======
+        // ====== OVERLAY ======
         const overlay = document.createElement("div");
         overlay.style.position = "fixed";
         overlay.style.inset = "0";
@@ -491,60 +517,87 @@
           overlay.style.display = "none";
         };
 
+        // ====== KEYPAD PANEL ======
         const panel = document.createElement("div");
         panel.style.background = "#111";
         panel.style.padding = "20px";
         panel.style.borderRadius = "16px";
-        panel.style.width = "300px";
+        panel.style.width = "260px";
         panel.style.textAlign = "center";
-        panel.onclick = (e) => {
-          e.stopPropagation();
-        };
 
-        const inputBox = document.createElement("input");
-        inputBox.type = "text";
-        inputBox.placeholder = "Type your answer...";
-        inputBox.style.width = "100%";
-        inputBox.style.fontSize = "18px";
-        inputBox.style.padding = "10px";
-        inputBox.style.marginBottom = "10px";
-        panel.appendChild(inputBox);
+        panel.onclick = (e) => e.stopPropagation();
 
-        const btn = document.createElement("button");
-        btn.innerText = "OK";
-        btn.style.fontSize = "18px";
-        btn.style.padding = "10px 20px";
+        // ====== DISPLAY ======
+        const display = document.createElement("div");
+        display.style.background = "black";
+        display.style.color = "lime";
+        display.style.fontSize = "28px";
+        display.style.padding = "10px";
+        display.style.marginBottom = "12px";
+        display.style.letterSpacing = "4px";
+        display.innerText = "____";
 
-        let correctAnswers = ["feb15", "feb 15", "2 15", "february 15"];
+        panel.appendChild(display);
 
-        btn.onclick = () => {
-          const normalized = inputBox.value
-            .trim()
-            .toLowerCase()
-            .replace(/\s+/g, " ");
+        // ====== KEYS ======
+        const keys = document.createElement("div");
+        keys.style.display = "grid";
+        keys.style.gridTemplateColumns = "repeat(3, 1fr)";
+        keys.style.gap = "10px";
 
-          if (correctAnswers.includes(normalized)) {
-            unlocked = true;
-            overlay.style.display = "none";
-            keypadBtn.remove();
+        const buttons = [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "C",
+          "0",
+          "OK",
+        ];
 
-            doorImg.src = "assets/door.png";
+        buttons.forEach((label) => {
+          const btn = document.createElement("button");
+          btn.innerText = label;
+          btn.style.fontSize = "20px";
+          btn.style.padding = "15px";
+          btn.style.borderRadius = "10px";
 
-            speech.innerText = "You remembered… 💖 Break the door!";
-          } else {
-            panel.classList.add("shake");
-            setTimeout(() => panel.classList.remove("shake"), 300);
-            inputBox.value = "";
-          }
-        };
+          btn.onclick = () => {
+            if (label === "C") {
+              input = "";
+            } else if (label === "OK") {
+              if (input === correctCode) {
+                unlocked = true;
+                overlay.style.display = "none";
+                keypadBtn.remove();
+                doorImg.src = "assets/door.png";
+                speech.innerText = "You remembered… 💖 Break the door!";
+              } else {
+                panel.classList.add("shake");
+                setTimeout(() => panel.classList.remove("shake"), 300);
+                input = "";
+              }
+            } else {
+              if (input.length < 4) input += label;
+            }
 
-        panel.appendChild(btn);
+            display.innerText = input.padEnd(4, "_");
+          };
+
+          keys.appendChild(btn);
+        });
+
+        panel.appendChild(keys);
         overlay.appendChild(panel);
         document.body.appendChild(overlay);
 
         keypadBtn.onclick = () => {
           overlay.style.display = "flex";
-          inputBox.focus();
         };
 
         // ====== BREAK DOOR ======
@@ -581,7 +634,7 @@
         const correct = Math.floor(Math.random() * keyCount);
 
         // TIMER BAR SETTINGS
-        let timeLeft = 15; // seconds
+        let timeLeft = 17; // seconds
         const timerBar = document.createElement("div");
         timerBar.id = "level3-timer-bar";
         timerBar.style.position = "absolute";
@@ -703,40 +756,209 @@
       }
 
       /* LEVEL 4 – Boss */
+      /* LEVEL 4 – Boss with minions */
       function level4() {
+        lost = false;
         speech.innerText = "Finish him!";
+        player.style.top = "100px";
 
         const hpBar = document.getElementById("boss-hp");
         const hpFill = document.getElementById("boss-hp-fill");
-
-        let maxHP = 10;
-        let hp = maxHP;
-
-        hpBar.style.display = "block";
+        hpBar.style.display = "none";
         hpFill.style.width = "100%";
 
+        // ====== Litus moving in from bottom ======
+        const litus = document.createElement("div");
+        litus.className = "enemy";
+        litus.style.width = "60px";
+        litus.style.height = "60px";
+
+        let y = 110; // start below screen
+        const x = 45; // vw
+
+        litus.style.left = x + "vw";
+        litus.style.top = y + "vh";
+
+        const litusImg = document.createElement("img");
+        litusImg.src = "assets/backWalk.gif";
+        litusImg.style.pointerEvents = "none";
+        litus.appendChild(litusImg);
+
+        game.appendChild(litus);
+        objects.push(litus);
+
+        const speed = 0.25; // moving speed
+
+        let maxHP = 30;
+        let hp = maxHP;
+
+        // ====== BOSS ======
         const boss = document.createElement("div");
-        boss.className = "enemy";
-        boss.style.background = "red";
-        boss.style.width = "80px";
-        boss.style.height = "80px";
-        boss.style.top = "40vh";
-        boss.style.left = "40vw";
+        boss.className = "boss";
+        boss.style.width = "300px";
+        boss.style.height = "300px";
+        boss.style.top = "30vh";
+        boss.style.left = "15vw";
 
-        boss.onclick = () => {
-          hp--;
-          hpFill.style.width = (hp / maxHP) * 100 + "%";
-
-          if (hp <= 0) {
-            boss.remove();
-            hpBar.style.display = "none";
-            showOverlay("You saved me ❤️");
-          }
-        };
+        const jongImg = document.createElement("img");
+        jongImg.src = "assets/jongSt.png";
+        jongImg.style.pointerEvents = "none";
+        jongImg.style.width = "100%";
+        jongImg.style.height = "100%";
+        boss.appendChild(jongImg);
 
         game.appendChild(boss);
         objects.push(boss);
+
+        // ====== Litus move interval ======
+        const walkInterval = setInterval(() => {
+          y -= speed;
+          litus.style.top = y + "vh";
+
+          if (y <= 85) {
+            clearInterval(walkInterval);
+            litusImg.src = "assets/backLitus.png";
+
+            // ====== Boss speech ======
+            enemySpeechLikeSpeech(
+              boss,
+              [
+                "So.. you finally arrived",
+                "Time to face your fate",
+                "Let's see how strong you really are",
+              ],
+              () => {
+                // AFTER DIALOG FINISHES
+
+                jongImg.src = "assets/jongBig.gif";
+
+                setTimeout(() => {
+                  hpBar.style.display = "block";
+                  function spawnTapEffect(x, y) {
+                    const effect = document.createElement("img");
+                    effect.src = "assets/sword_cut.gif";
+                    effect.style.position = "fixed";
+                    effect.style.left = x - 25 + "px";
+                    effect.style.top = y - 25 + "px";
+                    effect.style.width = "50px";
+                    effect.style.height = "50px";
+                    effect.style.pointerEvents = "none";
+                    effect.style.zIndex = 999;
+
+                    document.body.appendChild(effect);
+
+                    setTimeout(() => effect.remove(), 250);
+                  }
+
+                  function clickListener(e) {
+                    spawnTapEffect(e.clientX, e.clientY);
+                  }
+
+                  function touchListener(e) {
+                    const touch = e.touches[0];
+                    spawnTapEffect(touch.clientX, touch.clientY);
+                  }
+
+                  document.addEventListener("click", clickListener);
+                  document.addEventListener("touchstart", touchListener);
+
+                  // When level ends, remove listeners
+                  function cleanupTapEffect() {
+                    document.removeEventListener("click", clickListener);
+                    document.removeEventListener("touchstart", touchListener);
+                  }
+
+                  // ====== Boss tapping ======
+                  boss.onclick = () => {
+                    boss.classList.add("shake");
+                    setTimeout(() => boss.classList.remove("shake"), 200);
+                    hp--;
+                    hpFill.style.width = (hp / maxHP) * 100 + "%";
+
+                    if (hp <= 0) {
+                      boss.remove();
+                      hpBar.style.display = "none";
+                      minionInterval && clearInterval(minionInterval);
+                      showOverlay("You saved me ❤️");
+                    }
+                  };
+
+                  // ====== Minion spawner ======
+                  // ====== Minion spawner ======
+                  const loseLine = 95; // vh
+                  const minionSpeed = 0.3;
+
+                  // boss horizontal safe zone
+                  const bossLeft = 15; // vw
+                  const bossWidth = 25; // vw
+                  const minX1 = 0;
+                  const maxX1 = bossLeft; // left side of boss
+                  const minX2 = bossLeft + bossWidth; // right side of boss
+                  const maxX2 = 80; // right screen edge
+
+                  const minionInterval = setInterval(() => {
+                    const minion = document.createElement("div");
+                    minion.className = "enemy";
+
+                    const img = document.createElement("img");
+                    img.src = "assets/goons.gif";
+                    img.style.pointerEvents = "none";
+                    minion.appendChild(img);
+
+                    // spawn at random horizontal position outside boss
+                    let xPos;
+                    if (Math.random() < 0.5) {
+                      // left side
+                      xPos = minX1 + Math.random() * (maxX1 - minX1);
+                    } else {
+                      // right side
+                      xPos = minX2 + Math.random() * (maxX2 - minX2);
+                    }
+
+                    let yPos = -10; // start above screen
+                    minion.style.left = xPos + "vw";
+                    minion.style.top = yPos + "vh";
+
+                    game.appendChild(minion);
+                    objects.push(minion);
+
+                    // move minion downward
+                    const moveInterval = setInterval(() => {
+                      yPos += minionSpeed;
+                      minion.style.top = yPos + "vh";
+
+                      if (yPos >= loseLine) {
+                        console.log("LOST SA 4");
+                        clearInterval(moveInterval);
+                        gameOver = true;
+                        minion.remove();
+                        objects = objects.filter((o) => o !== minion);
+                        clearInterval(minionInterval);
+                        clearGame();
+
+                        lost = true;
+                        showOverlay("Oh no! Minions got past you 💔");
+                      }
+                    }, 20);
+
+                    // Tap to destroy
+                    minion.onclick = () => {
+                      clearInterval(moveInterval);
+                      minion.remove();
+                      objects = objects.filter((o) => o !== minion);
+                    };
+                  }, 1000); // spawn every 3 sec
+                }, 3000);
+              },
+              -220,
+              70
+            );
+
+            speech.innerText = "It's here!";
+          }
+        }, 20);
       }
+
       /* END */
       function endGame() {
         speech.innerText = "I'm free!";
@@ -744,6 +966,54 @@
         overlayText.innerText =
           "Happy Anniversary ❤️\nThank you for saving me!";
         nextBtn.style.display = "none";
+      }
+
+      function enemySpeechLikeSpeech(
+        enemy,
+        lines,
+        onFinish,
+        offsetX = 8,
+        offsetY = 0
+      ) {
+        let index = 0;
+
+        const bubble = document.createElement("div");
+        bubble.className = "enemy-speech";
+
+        function update() {
+          bubble.innerText = lines[index];
+          const rect = enemy.getBoundingClientRect();
+          bubble.style.left = rect.right + offsetX + "px";
+          bubble.style.top = rect.top + rect.height / 4 + offsetY + "px";
+        }
+
+        update();
+        document.body.appendChild(bubble);
+
+        function advanceDialog() {
+          index++;
+          if (index >= lines.length) {
+            bubble.remove();
+            document.removeEventListener("click", advanceDialog); // remove listener
+            if (onFinish) onFinish();
+          } else {
+            update();
+          }
+        }
+
+        // Anywhere tap advances dialog
+        document.addEventListener("click", advanceDialog);
+
+        // keep following enemy
+        const follow = setInterval(() => {
+          if (!document.body.contains(enemy)) {
+            bubble.remove();
+            clearInterval(follow);
+            document.removeEventListener("click", advanceDialog);
+          } else {
+            update();
+          }
+        }, 30);
       }
     </script>
   </body>
