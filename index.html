@@ -142,6 +142,77 @@
       .shake {
         animation: shake 0.3s ease;
       }
+
+      @keyframes shakeB {
+        0% {
+          transform: translateX(0);
+        }
+        5% {
+          transform: translateX(-30px);
+        }
+        10% {
+          transform: translateX(30px);
+        }
+        15% {
+          transform: translateX(-30px);
+        }
+        20% {
+          transform: translateX(30px);
+        }
+        25% {
+          transform: translateX(-30px);
+        }
+        30% {
+          transform: translateX(30px);
+        }
+        35% {
+          transform: translateX(-30px);
+        }
+        40% {
+          transform: translateX(30px);
+        }
+        45% {
+          transform: translateX(-30px);
+        }
+        50% {
+          transform: translateX(30px);
+        }
+        55% {
+          transform: translateX(-30px);
+        }
+        60% {
+          transform: translateX(30px);
+        }
+        65% {
+          transform: translateX(-30px);
+        }
+        70% {
+          transform: translateX(30px);
+        }
+        75% {
+          transform: translateX(-30px);
+        }
+        80% {
+          transform: translateX(30px);
+        }
+        85% {
+          transform: translateX(-30px);
+        }
+        90% {
+          transform: translateX(30px);
+        }
+        95% {
+          transform: translateX(-30px);
+        }
+        100% {
+          transform: translateX(0);
+        }
+      }
+
+      .shakeBos {
+        animation: shakeB 1s ease;
+      }
+
       #wave-screen {
         position: fixed;
         inset: 0;
@@ -205,6 +276,139 @@
         min-width: 100px;
         max-width: 170px;
       }
+
+      .vs-card {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle, #000 30%, #000c 100%);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 9999;
+        padding: 5vw;
+        box-sizing: border-box;
+      }
+
+      .vs-side {
+        width: 35vw;
+        max-width: 180px;
+        min-width: 90px;
+      }
+
+      .vs-side img {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+      }
+
+      .vs-text {
+        font-size: clamp(48px, 15vw, 120px);
+        font-weight: 900;
+        color: red;
+        text-shadow: 0 0 12px black;
+      }
+
+      .vs-card.hide {
+        animation: vsFadeOut 0.3s ease forwards;
+      }
+
+      @keyframes vsFadeOut {
+        to {
+          opacity: 0;
+          transform: scale(1.05);
+        }
+      }
+
+      .vs-side.left {
+        animation: slideLeft 0.4s ease;
+      }
+      .vs-side.right {
+        animation: slideRight 0.4s ease;
+      }
+
+      @keyframes slideLeft {
+        from {
+          transform: translateX(-30vw);
+          opacity: 0;
+        }
+      }
+      @keyframes slideRight {
+        from {
+          transform: translateX(30vw);
+          opacity: 0;
+        }
+      }
+
+      .vs-hint {
+        position: absolute;
+        bottom: 6vh;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: clamp(14px, 4vw, 20px);
+        color: #fff;
+        opacity: 0.8;
+        letter-spacing: 1px;
+        text-shadow: 0 0 6px black;
+        animation: pulseHint 1.4s infinite;
+        pointer-events: none;
+      }
+
+      @keyframes pulseHint {
+        0% {
+          opacity: 0.4;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.4;
+        }
+      }
+
+      .vs-name {
+        margin-top: 3vh;
+        font-size: clamp(12px, 3.5vw, 18px);
+        font-weight: 600;
+        color: #fff;
+        text-shadow: 0 0 6px black;
+        letter-spacing: 1px;
+        text-align: center;
+      }
+      @keyframes shakeB {
+        0% {
+          transform: translate(0, 0) rotate(0deg);
+        }
+        10% {
+          transform: translate(-5px, 0) rotate(-5deg);
+        }
+        20% {
+          transform: translate(5px, 0) rotate(5deg);
+        }
+        30% {
+          transform: translate(-5px, 0) rotate(-5deg);
+        }
+        40% {
+          transform: translate(5px, 0) rotate(5deg);
+        }
+        50% {
+          transform: translate(-5px, 0) rotate(-5deg);
+        }
+        60% {
+          transform: translate(5px, 0) rotate(5deg);
+        }
+        70% {
+          transform: translate(-5px, 0) rotate(-5deg);
+        }
+        80% {
+          transform: translate(5px, 0) rotate(5deg);
+        }
+        90% {
+          transform: translate(-5px, 0) rotate(-5deg);
+        }
+        100% {
+          transform: translate(0, 0) rotate(0deg);
+        }
+      }
     </style>
   </head>
 
@@ -241,7 +445,7 @@
       const speech = document.getElementById("speech");
       const player = document.getElementById("player");
 
-      let level = 1;
+      let level = 3;
       let objects = [];
       let lost = false;
 
@@ -265,13 +469,22 @@
         overlayText.innerText = text;
         overlay.style.display = "flex";
       }
-
+      const rivalSpeech = new Audio();
+      const rivalBg = new Audio();
+      const lostSfx = new Audio();
+      const damage = new Audio();
+      rivalSpeech.src = "assets/rival.mp3";
+      rivalBg.src = "assets/bone.mp3";
+      lostSfx.src = "assets/lost.mp3";
+      damage.src = "assets/damage.mp3";
       nextBtn.onclick = () => {
         overlay.style.display = "none";
         waveIntroShown = false;
         if (lost) {
           if (level == 4) {
+            rivalSpeech.play();
             level = 4;
+
             startLevel();
           } else {
             level = 1;
@@ -280,6 +493,9 @@
           }
         } else {
           level++;
+          if (level == 4) {
+            rivalSpeech.play();
+          }
         }
         startLevel();
       };
@@ -295,9 +511,16 @@
         } else if (level === 2) {
           console.log("nag run");
           level2();
-        } else if (level === 3) level3();
-        else if (level === 4) level4();
+        } else if (level === 3) {
+          level3();
+          //tempo();
+        } else if (level === 4) level4();
         else endGame();
+      }
+
+      function tempo() {
+        level = 3;
+        showOverlay("Tempo lang to");
       }
 
       function showWaveScreen(whatText, waveNumber, callback) {
@@ -634,7 +857,7 @@
         const correct = Math.floor(Math.random() * keyCount);
 
         // TIMER BAR SETTINGS
-        let timeLeft = 17; // seconds
+        let timeLeft = 15; // seconds
         const timerBar = document.createElement("div");
         timerBar.id = "level3-timer-bar";
         timerBar.style.position = "absolute";
@@ -755,9 +978,12 @@
         }
       }
 
+      loop = 0;
       /* LEVEL 4 – Boss */
       /* LEVEL 4 – Boss with minions */
       function level4() {
+        let gameOver4 = false;
+
         lost = false;
         speech.innerText = "Finish him!";
         player.style.top = "100px";
@@ -789,7 +1015,7 @@
 
         const speed = 0.25; // moving speed
 
-        let maxHP = 40;
+        let maxHP = 50;
         let hp = maxHP;
 
         // ====== BOSS ======
@@ -809,6 +1035,10 @@
 
         game.appendChild(boss);
         objects.push(boss);
+        const audio = new Audio();
+
+        // Play music A
+        audio.src = "assets/rawrSlowed.mp3";
 
         // ====== Litus move interval ======
         const walkInterval = setInterval(() => {
@@ -828,127 +1058,192 @@
                 "Let's see how strong you really are",
               ],
               () => {
+                rivalSpeech.pause();
+                rivalSpeech.currentTime = 0;
                 // AFTER DIALOG FINISHES
 
                 jongImg.src = "assets/jongBig.gif";
+                setTimeout(() => {
+                  audio.play(); //Rawr
+                }, 3500);
 
                 setTimeout(() => {
-                  hpBar.style.display = "block";
-                  function spawnTapEffect(x, y) {
-                    const effect = document.createElement("img");
-                    effect.src = "assets/sword_cut.gif";
-                    effect.style.position = "fixed";
-                    effect.style.left = x - 25 + "px";
-                    effect.style.top = y - 25 + "px";
-                    effect.style.width = "50px";
-                    effect.style.height = "50px";
-                    effect.style.pointerEvents = "none";
-                    effect.style.zIndex = 999;
+                  audio.pause(); //Rawr
+                  audio.currentTime = 0;
+                  litus.remove();
+                  rivalBg.play();
+                  showVsCard(
+                    "assets/bigLitus.png",
+                    "Litus",
+                    "assets/jong.png",
+                    "Jeonghan",
+                    () => {
+                      // start boss fight AFTER VS screen
+                      jongImg.src = "assets/jongIdle.gif";
+                      hpBar.style.display = "block";
+                      function spawnTapEffect(x, y) {
+                        const effect = document.createElement("img");
+                        effect.src = "assets/sword_cut.gif";
+                        effect.style.position = "fixed";
+                        effect.style.left = x - 25 + "px";
+                        effect.style.top = y - 25 + "px";
+                        effect.style.width = "50px";
+                        effect.style.height = "50px";
+                        effect.style.pointerEvents = "none";
+                        effect.style.zIndex = 999;
 
-                    document.body.appendChild(effect);
+                        document.body.appendChild(effect);
 
-                    setTimeout(() => effect.remove(), 250);
-                  }
-
-                  function clickListener(e) {
-                    spawnTapEffect(e.clientX, e.clientY);
-                  }
-
-                  function touchListener(e) {
-                    const touch = e.touches[0];
-                    spawnTapEffect(touch.clientX, touch.clientY);
-                  }
-
-                  document.addEventListener("click", clickListener);
-                  document.addEventListener("touchstart", touchListener);
-
-                  // When level ends, remove listeners
-                  function cleanupTapEffect() {
-                    document.removeEventListener("click", clickListener);
-                    document.removeEventListener("touchstart", touchListener);
-                  }
-
-                  // ====== Boss tapping ======
-                  boss.onclick = () => {
-                    boss.classList.add("shake");
-                    setTimeout(() => boss.classList.remove("shake"), 200);
-                    hp--;
-                    hpFill.style.width = (hp / maxHP) * 100 + "%";
-
-                    if (hp <= 0) {
-                      boss.remove();
-                      hpBar.style.display = "none";
-                      minionInterval && clearInterval(minionInterval);
-                      showOverlay("You saved me ❤️");
-                    }
-                  };
-
-                  // ====== Minion spawner ======
-                  // ====== Minion spawner ======
-                  const loseLine = 95; // vh
-                  const minionSpeed = 0.5;
-
-                  // boss horizontal safe zone
-                  const bossLeft = 15; // vw
-                  const bossWidth = 25; // vw
-                  const minX1 = 0;
-                  const maxX1 = bossLeft; // left side of boss
-                  const minX2 = bossLeft + bossWidth; // right side of boss
-                  const maxX2 = 80; // right screen edge
-
-                  const minionInterval = setInterval(() => {
-                    const minion = document.createElement("div");
-                    minion.className = "enemy";
-
-                    const img = document.createElement("img");
-                    img.src = "assets/goons.gif";
-                    img.style.pointerEvents = "none";
-                    minion.appendChild(img);
-
-                    // spawn at random horizontal position outside boss
-                    let xPos;
-                    if (Math.random() < 0.5) {
-                      // left side
-                      xPos = minX1 + Math.random() * (maxX1 - minX1);
-                    } else {
-                      // right side
-                      xPos = minX2 + Math.random() * (maxX2 - minX2);
-                    }
-
-                    let yPos = -10; // start above screen
-                    minion.style.left = xPos + "vw";
-                    minion.style.top = yPos + "vh";
-
-                    game.appendChild(minion);
-                    objects.push(minion);
-
-                    // move minion downward
-                    const moveInterval = setInterval(() => {
-                      yPos += minionSpeed;
-                      minion.style.top = yPos + "vh";
-
-                      if (yPos >= loseLine) {
-                        console.log("LOST SA 4");
-                        clearInterval(moveInterval);
-                        gameOver = true;
-                        minion.remove();
-                        objects = objects.filter((o) => o !== minion);
-                        clearInterval(minionInterval);
-                        clearGame();
-
-                        lost = true;
-                        showOverlay("Oh no! Minions got past you 💔");
+                        setTimeout(() => effect.remove(), 250);
                       }
-                    }, 20);
 
-                    // Tap to destroy
-                    minion.onclick = () => {
-                      clearInterval(moveInterval);
-                      minion.remove();
-                      objects = objects.filter((o) => o !== minion);
-                    };
-                  }, 600); // spawn every 3 sec
-                }, 3000);
+                      function clickListener(e) {
+                        spawnTapEffect(e.clientX, e.clientY);
+                      }
+
+                      function touchListener(e) {
+                        const touch = e.touches[0];
+                        spawnTapEffect(touch.clientX, touch.clientY);
+                      }
+
+                      document.addEventListener("click", clickListener);
+                      document.addEventListener("touchstart", touchListener);
+
+                      // When level ends, remove listeners
+                      function cleanupTapEffect() {
+                        document.removeEventListener("click", clickListener);
+                        document.removeEventListener(
+                          "touchstart",
+                          touchListener
+                        );
+                      }
+
+                      // ====== Boss tapping ======
+                      boss.onclick = () => {
+                        damage.play();
+                        boss.classList.add("shake");
+                        setTimeout(() => {
+                          boss.classList.remove("shake");
+                          damage.pause();
+                          damage.currentTime = 0;
+                        }, 200);
+                        hp--;
+                        hpFill.style.width = (hp / maxHP) * 100 + "%";
+
+                        if (hp <= 0) {
+                          //boss.remove();
+                          //hpBar.style.display = "none";
+                          if (gameOver4) return; //  prevents repeat execution
+                          gameOver4 = true;
+                          rivalBg.pause();
+                          jongImg.src = "assets/damagedJong.png";
+                          rivalBg.currentTime = 0;
+                          minionInterval && clearInterval(minionInterval);
+                          objects
+                            .filter((o) => o.classList.contains("enemy"))
+                            .forEach((o) => o.remove());
+
+                          boss.style.pointerEvents = "none";
+                          boss.classList.add("shake");
+                          setTimeout(() => {
+                            boss.classList.remove("shake");
+                          }, 200);
+                          setTimeout(() => {
+                            boss.classList.add("shake");
+                          }, 300);
+
+                          // Remove shakeBos class after animation ends
+
+                          setTimeout(() => {
+                            jongImg.src = "assets/damagedJong.gif";
+                          }, 1800);
+
+                          //clearGame();
+
+                          //showOverlay("You saved me ❤️");
+                        }
+                      };
+
+                      // ====== Minion spawner ======
+                      // ====== Minion spawner ======
+                      const loseLine = 95; // vh
+                      const minionSpeed = 0.4;
+
+                      // boss horizontal safe zone
+                      const bossLeft = 15; // vw
+                      const bossWidth = 25; // vw
+                      const minX1 = 0;
+                      const maxX1 = bossLeft; // left side of boss
+                      const minX2 = bossLeft + bossWidth; // right side of boss
+                      const maxX2 = 80; // right screen edge
+
+                      const minionInterval = setInterval(() => {
+                        const minion = document.createElement("div");
+                        minion.className = "enemy";
+
+                        const img = document.createElement("img");
+                        img.src = "assets/goons.gif";
+                        img.style.pointerEvents = "none";
+                        minion.appendChild(img);
+
+                        // spawn at random horizontal position outside boss
+                        let xPos;
+                        if (Math.random() < 0.5) {
+                          // left side
+                          xPos = minX1 + Math.random() * (maxX1 - minX1);
+                        } else {
+                          // right side
+                          xPos = minX2 + Math.random() * (maxX2 - minX2);
+                        }
+
+                        let yPos = -10; // start above screen
+                        minion.style.left = xPos + "vw";
+                        minion.style.top = yPos + "vh";
+
+                        game.appendChild(minion);
+                        objects.push(minion);
+
+                        // move minion downward
+                        const moveInterval = setInterval(() => {
+                          yPos += minionSpeed;
+                          minion.style.top = yPos + "vh";
+                          if (yPos >= loseLine) {
+                            if (gameOver4) return; // 🚨 prevents repeat execution
+                            gameOver4 = true;
+                            rivalBg.pause();
+                            rivalBg.currentTime = 0;
+                            lostSfx.play();
+
+                            console.log("LOST SA 4");
+
+                            clearInterval(minionInterval);
+                            clearInterval(moveInterval);
+
+                            // remove ALL minions
+                            objects
+                              .filter((o) => o.classList.contains("enemy"))
+                              .forEach((o) => o.remove());
+
+                            clearGame();
+
+                            objects = [];
+
+                            lost = true;
+
+                            showOverlay("Oh no! Minions got past you 💔");
+                          }
+                        }, 20);
+
+                        // Tap to destroy
+                        minion.onclick = () => {
+                          clearInterval(moveInterval);
+                          minion.remove();
+                          objects = objects.filter((o) => o !== minion);
+                        };
+                      }, 1000); // spawn every 3 sec
+                    }
+                  );
+                }, 6900);
               },
               -220,
               70
@@ -957,6 +1252,43 @@
             speech.innerText = "It's here!";
           }
         }, 20);
+      }
+
+      function showVsCard(
+        playerImgSrc,
+        playerName,
+        bossImgSrc,
+        bossName,
+        onFinish
+      ) {
+        const vs = document.createElement("div");
+        vs.className = "vs-card";
+
+        vs.innerHTML = `
+    <div class="vs-side left">
+      <img src="${playerImgSrc}">
+      <div class="vs-name">${playerName}</div>
+    </div>
+
+    <div class="vs-text">VS</div>
+
+    <div class="vs-side right">
+      <img src="${bossImgSrc}">
+      <div class="vs-name">${bossName}</div>
+    </div>
+
+    <div class="vs-hint">Tap anywhere to begin</div>
+  `;
+
+        document.body.appendChild(vs);
+
+        vs.addEventListener("click", () => {
+          vs.classList.add("hide");
+          setTimeout(() => {
+            vs.remove();
+            onFinish && onFinish();
+          }, 300);
+        });
       }
 
       /* END */
