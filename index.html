@@ -445,7 +445,7 @@
       const speech = document.getElementById("speech");
       const player = document.getElementById("player");
 
-      let level = 1;
+      let level = 3;
       let objects = [];
       let lost = false;
 
@@ -512,8 +512,8 @@
           console.log("nag run");
           level2();
         } else if (level === 3) {
-          level3();
-          //tempo();
+          //level3();
+          tempo();
         } else if (level === 4) level4();
         else endGame();
       }
@@ -1068,181 +1068,185 @@
                 }, 3500);
 
                 setTimeout(() => {
-                  audio.pause(); //Rawr
-                  audio.currentTime = 0;
-                  litus.remove();
-                  rivalBg.play();
-                  showVsCard(
-                    "assets/bigLitus.png",
-                    "Litus",
-                    "assets/jong.png",
-                    "Jeonghan",
-                    () => {
-                      // start boss fight AFTER VS screen
-                      jongImg.src = "assets/jongIdle.gif";
-                      hpBar.style.display = "block";
-                      function spawnTapEffect(x, y) {
-                        const effect = document.createElement("img");
-                        effect.src = "assets/sword_cut.gif";
-                        effect.style.position = "fixed";
-                        effect.style.left = x - 25 + "px";
-                        effect.style.top = y - 25 + "px";
-                        effect.style.width = "50px";
-                        effect.style.height = "50px";
-                        effect.style.pointerEvents = "none";
-                        effect.style.zIndex = 999;
+                  enemySpeechLikeSpeech(boss, ["MWAHAHAHAHA!!"], () => {
+                    audio.pause(); //Rawr
+                    audio.currentTime = 0;
+                    litus.remove();
+                    rivalBg.play();
+                    showVsCard(
+                      "assets/bigLitus.png",
+                      "Litus",
+                      "assets/jong.png",
+                      "Jeonghan",
+                      () => {
+                        // start boss fight AFTER VS screen
+                        jongImg.src = "assets/jongIdle.gif";
+                        hpBar.style.display = "block";
+                        function spawnTapEffect(x, y) {
+                          const effect = document.createElement("img");
+                          effect.src = "assets/sword_cut.gif";
+                          effect.style.position = "fixed";
+                          effect.style.left = x - 25 + "px";
+                          effect.style.top = y - 25 + "px";
+                          effect.style.width = "50px";
+                          effect.style.height = "50px";
+                          effect.style.pointerEvents = "none";
+                          effect.style.zIndex = 999;
 
-                        document.body.appendChild(effect);
+                          document.body.appendChild(effect);
 
-                        setTimeout(() => effect.remove(), 250);
-                      }
+                          setTimeout(() => effect.remove(), 250);
+                        }
 
-                      function clickListener(e) {
-                        spawnTapEffect(e.clientX, e.clientY);
-                      }
+                        function clickListener(e) {
+                          spawnTapEffect(e.clientX, e.clientY);
+                        }
 
-                      function touchListener(e) {
-                        const touch = e.touches[0];
-                        spawnTapEffect(touch.clientX, touch.clientY);
-                      }
+                        function touchListener(e) {
+                          const touch = e.touches[0];
+                          spawnTapEffect(touch.clientX, touch.clientY);
+                        }
 
-                      document.addEventListener("click", clickListener);
-                      document.addEventListener("touchstart", touchListener);
+                        document.addEventListener("click", clickListener);
+                        document.addEventListener("touchstart", touchListener);
 
-                      // When level ends, remove listeners
-                      function cleanupTapEffect() {
-                        document.removeEventListener("click", clickListener);
-                        document.removeEventListener(
-                          "touchstart",
-                          touchListener
-                        );
-                      }
+                        // When level ends, remove listeners
+                        function cleanupTapEffect() {
+                          document.removeEventListener("click", clickListener);
+                          document.removeEventListener(
+                            "touchstart",
+                            touchListener
+                          );
+                        }
 
-                      // ====== Boss tapping ======
-                      boss.onclick = () => {
-                        damage.play();
-                        boss.classList.add("shake");
-                        setTimeout(() => {
-                          boss.classList.remove("shake");
-                          damage.pause();
-                          damage.currentTime = 0;
-                        }, 200);
-                        hp--;
-                        hpFill.style.width = (hp / maxHP) * 100 + "%";
-
-                        if (hp <= 0) {
-                          //boss.remove();
-                          //hpBar.style.display = "none";
-                          if (gameOver4) return; //  prevents repeat execution
-                          gameOver4 = true;
-                          rivalBg.pause();
-                          jongImg.src = "assets/damagedJong.png";
-                          rivalBg.currentTime = 0;
-                          minionInterval && clearInterval(minionInterval);
-                          objects
-                            .filter((o) => o.classList.contains("enemy"))
-                            .forEach((o) => o.remove());
-
-                          boss.style.pointerEvents = "none";
+                        // ====== Boss tapping ======
+                        boss.onclick = () => {
+                          damage.play();
                           boss.classList.add("shake");
                           setTimeout(() => {
                             boss.classList.remove("shake");
+                            damage.pause();
+                            damage.currentTime = 0;
                           }, 200);
-                          setTimeout(() => {
-                            boss.classList.add("shake");
-                          }, 300);
+                          hp--;
+                          hpFill.style.width = (hp / maxHP) * 100 + "%";
 
-                          // Remove shakeBos class after animation ends
-
-                          setTimeout(() => {
-                            jongImg.src = "assets/damagedJong.gif";
-                          }, 1800);
-
-                          //clearGame();
-
-                          //showOverlay("You saved me ❤️");
-                        }
-                      };
-
-                      // ====== Minion spawner ======
-                      // ====== Minion spawner ======
-                      const loseLine = 95; // vh
-                      const minionSpeed = 0.4;
-
-                      // boss horizontal safe zone
-                      const bossLeft = 15; // vw
-                      const bossWidth = 25; // vw
-                      const minX1 = 0;
-                      const maxX1 = bossLeft; // left side of boss
-                      const minX2 = bossLeft + bossWidth; // right side of boss
-                      const maxX2 = 80; // right screen edge
-
-                      const minionInterval = setInterval(() => {
-                        const minion = document.createElement("div");
-                        minion.className = "enemy";
-
-                        const img = document.createElement("img");
-                        img.src = "assets/goons.gif";
-                        img.style.pointerEvents = "none";
-                        minion.appendChild(img);
-
-                        // spawn at random horizontal position outside boss
-                        let xPos;
-                        if (Math.random() < 0.5) {
-                          // left side
-                          xPos = minX1 + Math.random() * (maxX1 - minX1);
-                        } else {
-                          // right side
-                          xPos = minX2 + Math.random() * (maxX2 - minX2);
-                        }
-
-                        let yPos = -10; // start above screen
-                        minion.style.left = xPos + "vw";
-                        minion.style.top = yPos + "vh";
-
-                        game.appendChild(minion);
-                        objects.push(minion);
-
-                        // move minion downward
-                        const moveInterval = setInterval(() => {
-                          yPos += minionSpeed;
-                          minion.style.top = yPos + "vh";
-                          if (yPos >= loseLine) {
-                            if (gameOver4) return; // 🚨 prevents repeat execution
+                          if (hp <= 0) {
+                            //boss.remove();
+                            //hpBar.style.display = "none";
+                            if (gameOver4) return; //  prevents repeat execution
                             gameOver4 = true;
                             rivalBg.pause();
+                            jongImg.src = "assets/damagedJong.png";
                             rivalBg.currentTime = 0;
-                            lostSfx.play();
-
-                            console.log("LOST SA 4");
-
-                            clearInterval(minionInterval);
-                            clearInterval(moveInterval);
-
-                            // remove ALL minions
+                            minionInterval && clearInterval(minionInterval);
                             objects
                               .filter((o) => o.classList.contains("enemy"))
                               .forEach((o) => o.remove());
 
-                            clearGame();
+                            boss.style.pointerEvents = "none";
+                            boss.classList.add("shake");
+                            setTimeout(() => {
+                              boss.classList.remove("shake");
+                            }, 200);
+                            setTimeout(() => {
+                              boss.classList.add("shake");
+                            }, 300);
 
-                            objects = [];
+                            // Remove shakeBos class after animation ends
 
-                            lost = true;
+                            setTimeout(() => {
+                              jongImg.src = "assets/damagedJong.gif";
+                            }, 1800);
 
-                            showOverlay("Oh no! Minions got past you 💔");
+                            //clearGame();
+
+                            //showOverlay("You saved me ❤️");
                           }
-                        }, 20);
-
-                        // Tap to destroy
-                        minion.onclick = () => {
-                          clearInterval(moveInterval);
-                          minion.remove();
-                          objects = objects.filter((o) => o !== minion);
                         };
-                      }, 1000); // spawn every 3 sec
-                    }
-                  );
+
+                        // ====== Minion spawner ======
+                        // ====== Minion spawner ======
+                        const loseLine = 95; // vh
+                        const minionSpeed = 0.4;
+
+                        // boss horizontal safe zone
+                        const bossLeft = 15; // vw
+                        const bossWidth = 25; // vw
+                        const minX1 = 0;
+                        const maxX1 = bossLeft; // left side of boss
+                        const minX2 = bossLeft + bossWidth; // right side of boss
+                        const maxX2 = 80; // right screen edge
+
+                        const minionInterval = setInterval(() => {
+                          const minion = document.createElement("div");
+                          minion.className = "enemy";
+
+                          const img = document.createElement("img");
+                          img.src = "assets/goons.gif";
+                          img.style.pointerEvents = "none";
+                          minion.appendChild(img);
+
+                          // spawn at random horizontal position outside boss
+                          let xPos;
+                          if (Math.random() < 0.5) {
+                            // left side
+                            xPos = minX1 + Math.random() * (maxX1 - minX1);
+                          } else {
+                            // right side
+                            xPos = minX2 + Math.random() * (maxX2 - minX2);
+                          }
+
+                          let yPos = -10; // start above screen
+                          minion.style.left = xPos + "vw";
+                          minion.style.top = yPos + "vh";
+
+                          game.appendChild(minion);
+                          objects.push(minion);
+
+                          // move minion downward
+                          const moveInterval = setInterval(() => {
+                            yPos += minionSpeed;
+                            minion.style.top = yPos + "vh";
+                            if (yPos >= loseLine) {
+                              if (gameOver4) return; // 🚨 prevents repeat execution
+                              gameOver4 = true;
+                              rivalBg.pause();
+                              rivalBg.currentTime = 0;
+                              lostSfx.play();
+
+                              console.log("LOST SA 4");
+
+                              clearInterval(minionInterval);
+                              clearInterval(moveInterval);
+
+                              // remove ALL minions
+                              objects
+                                .filter((o) => o.classList.contains("enemy"))
+                                .forEach((o) => o.remove());
+
+                              clearGame();
+
+                              objects = [];
+
+                              lost = true;
+
+                              showOverlay("Oh no! Minions got past you 💔");
+                            }
+                          }, 20);
+
+                          // Tap to destroy
+                          minion.onclick = () => {
+                            clearInterval(moveInterval);
+                            minion.remove();
+                            objects = objects.filter((o) => o !== minion);
+                          };
+                        }, 1000); // spawn every 3 sec
+                      },
+                      -900,
+                      90
+                    );
+                  });
                 }, 6900);
               },
               -220,
