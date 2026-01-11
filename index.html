@@ -445,7 +445,7 @@
       const speech = document.getElementById("speech");
       const player = document.getElementById("player");
 
-      let level = 3;
+      let level = 1;
       let objects = [];
       let lost = false;
 
@@ -512,8 +512,8 @@
           console.log("nag run");
           level2();
         } else if (level === 3) {
-          //level3();
-          tempo();
+          level3();
+          //tempo();
         } else if (level === 4) level4();
         else endGame();
       }
