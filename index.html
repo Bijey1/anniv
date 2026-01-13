@@ -38,13 +38,25 @@
       }
 
       /* PLAYER */
-      #player {
+      .player {
         position: absolute;
-        top: 30px;
+        top: 100px;
         right: 70px;
         width: 50px;
         height: 50px;
-
+        z-index: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+      }
+      #cage {
+        position: absolute;
+        top: 101px;
+        right: 70px;
+        width: 50px;
+        height: 50px;
+        z-index: 2;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -269,11 +281,11 @@
         right: 70px;
         background: white;
         color: black;
-        padding: 5px 20px;
+        padding: 3px 15px;
         font-weight: bold;
         border-radius: 10px;
         font-size: 20px;
-        min-width: 100px;
+        min-width: 10px;
         max-width: 170px;
       }
 
@@ -409,6 +421,38 @@
           transform: translate(0, 0) rotate(0deg);
         }
       }
+
+      /* kick animation */
+      .kicked {
+        animation: kickOut 2s linear forwards;
+      }
+
+      @keyframes kickOut {
+        from {
+          transform: translate(0, 0) rotate(0deg) scale(1);
+          opacity: 1;
+        }
+
+        to {
+          transform: translate(150vw, -150vh) rotate(3600deg) scale(0.5);
+          opacity: 0;
+        }
+      }
+
+      /* animation triggered by adding class */
+
+      .fall {
+        animation: fallDown 3s linear forwards;
+      }
+
+      @keyframes fallDown {
+        0% {
+          top: 40px;
+        }
+        100% {
+          top: 515px;
+        }
+      }
     </style>
   </head>
 
@@ -423,8 +467,12 @@
       <div id="boss-hp">
         <div id="boss-hp-fill"></div>
       </div>
-      <div id="player">
-        <img src="assets/caged.png" />
+      <div id="cage">
+        <img src="assets/emptyCage.png" />
+      </div>
+
+      <div class="player">
+        <img src="assets/bigSad.png" />
         <div id="speech">Help me!</div>
       </div>
     </div>
@@ -443,7 +491,9 @@
       const overlayText = document.getElementById("overlay-text");
       const nextBtn = document.getElementById("next");
       const speech = document.getElementById("speech");
-      const player = document.getElementById("player");
+      const player = document.querySelector(".player");
+      const cage = document.getElementById("cage");
+      const cageImg = document.querySelector("#cage img");
 
       let level = 1;
       let objects = [];
@@ -940,21 +990,6 @@
             valid = true;
 
             if (y < topSafeY) valid = false; // avoid player
-            if (
-              Math.abs(x - lockX) < doorSafeRadius &&
-              Math.abs(y - lockY) < doorSafeRadius
-            )
-              valid = false;
-
-            for (const pos of usedPositions) {
-              if (
-                Math.abs(x - pos.x) < keySafeRadius &&
-                Math.abs(y - pos.y) < keySafeRadius
-              ) {
-                valid = false;
-                break;
-              }
-            }
           }
 
           usedPositions.push({ x, y });
@@ -1015,8 +1050,10 @@
 
         const speed = 0.25; // moving speed
 
-        let maxHP = 50;
+        let maxHP = 60;
         let hp = maxHP;
+
+        //hp = 5;
 
         // ====== BOSS ======
         const boss = document.createElement("div");
@@ -1068,7 +1105,7 @@
                 }, 3500);
 
                 setTimeout(() => {
-                  enemySpeechLikeSpeech(boss, ["MWAHAHAHAHA!!"], () => {
+                  enemySpeechLikeSpeech(boss, ["MWAHA!!"], () => {
                     audio.pause(); //Rawr
                     audio.currentTime = 0;
                     litus.remove();
@@ -1132,11 +1169,14 @@
                           hpFill.style.width = (hp / maxHP) * 100 + "%";
 
                           if (hp <= 0) {
+                            cleanupTapEffect();
+                            //Beaten won , boss defeated
                             //boss.remove();
                             //hpBar.style.display = "none";
                             if (gameOver4) return; //  prevents repeat execution
                             gameOver4 = true;
                             rivalBg.pause();
+                            speech.style.display = "none";
                             jongImg.src = "assets/damagedJong.png";
                             rivalBg.currentTime = 0;
                             minionInterval && clearInterval(minionInterval);
@@ -1153,11 +1193,162 @@
                               boss.classList.add("shake");
                             }, 300);
 
+                            // ====== Litus moving in from bottom ======
+                            const litus2 = document.createElement("div");
+                            litus2.className = "enemy";
+                            litus2.style.width = "60px";
+                            litus2.style.height = "60px";
+
+                            let y2 = 55; // up down
+                            let x2 = -20; // vw
+
+                            litus2.style.left = x2 + "vw";
+                            litus2.style.top = y2 + "vh";
+
+                            const litus2Img = document.createElement("img");
+                            litus2Img.src = "assets/sideWalk.gif";
+                            litus2Img.style.pointerEvents = "none";
+                            litus2.appendChild(litus2Img);
+
+                            game.appendChild(litus2);
+                            objects.push(litus2);
+
+                            const speed2 = 0.2; // moving speed
+
                             // Remove shakeBos class after animation ends
 
                             setTimeout(() => {
                               jongImg.src = "assets/damagedJong.gif";
+                              setTimeout(() => {
+                                // After shrinking ni boss
+                                // ====== Litus move interval ======
+                                const walkInterval2 = setInterval(() => {
+                                  x2 += speed2;
+                                  litus2.style.left = x2 + "vh";
+
+                                  if (x2 >= 10) {
+                                    clearInterval(walkInterval2);
+                                    litus2Img.src = "assets/bigLitus.png"; //Litus Walk
+
+                                    //After makarating ni litus
+                                    enemySpeechLikeSpeech(
+                                      boss,
+                                      [
+                                        "Agay! Yawa!",
+                                        "Sorry na, Sayo na tong bebe mo",
+                                        "Auko na Pls",
+                                        "Pazinsya na",
+                                      ],
+                                      () => {
+                                        enemySpeechLikeSpeech(
+                                          boss,
+                                          ["Nah", "Pakyu Jong Han"],
+                                          () => {
+                                            litus2Img.src =
+                                              "assets/sideWalk.gif"; //Litus Walk
+                                            const walkInterval3 = setInterval(
+                                              () => {
+                                                x2 += speed2;
+                                                litus2.style.left = x2 + "vh";
+
+                                                if (x2 >= 14) {
+                                                  clearInterval(walkInterval3);
+                                                  litus2Img.src =
+                                                    "assets/litusPunch.gif"; //Litus Walk
+
+                                                  setTimeout(() => {
+                                                    boss.classList.add(
+                                                      "kicked"
+                                                    );
+
+                                                    // remove bossacter after animation
+                                                    boss.addEventListener(
+                                                      "animationend",
+                                                      () => {
+                                                        boss.remove();
+                                                        hpBar.style.display =
+                                                          "none";
+
+                                                        //Speech sa cage
+                                                        speech.style.display =
+                                                          "block";
+                                                        speech.innerText =
+                                                          "YEHEY!!";
+                                                        setTimeout(() => {
+                                                          speech.innerText =
+                                                            "Thank you Bebe!!";
+
+                                                          setTimeout(() => {
+                                                            let clicks = 0;
+                                                            speech.innerText =
+                                                              "Tap the cage to free me bebe!";
+
+                                                            cage.style.pointerEvents =
+                                                              "auto";
+                                                            cage.onclick =
+                                                              () => {
+                                                                clicks++;
+                                                                cage.classList.add(
+                                                                  "shake"
+                                                                );
+                                                                setTimeout(
+                                                                  () =>
+                                                                    cage.classList.remove(
+                                                                      "shake"
+                                                                    ),
+                                                                  300
+                                                                );
+
+                                                                if (
+                                                                  clicks == 4
+                                                                ) {
+                                                                  cageImg.src =
+                                                                    "assets/damagedCage.png";
+                                                                } else if (
+                                                                  clicks == 8
+                                                                ) {
+                                                                  speech.style.display =
+                                                                    "none";
+                                                                  cageImg.src =
+                                                                    "assets/destroyedCage.png";
+                                                                  player.classList.add(
+                                                                    "fall"
+                                                                  );
+
+                                                                  setTimeout(
+                                                                    () =>
+                                                                      //Player fall from cage
+                                                                      1500
+                                                                  );
+                                                                }
+                                                              };
+                                                          }, 2000);
+                                                        }, 2000);
+                                                      },
+                                                      { once: true }
+                                                    );
+                                                  }, 1450);
+                                                }
+                                              },
+                                              20
+                                            );
+                                          },
+
+                                          -300, //x
+                                          90, //y
+                                          "no"
+                                        );
+                                      },
+                                      -220, //x
+                                      90, //y
+                                      "no"
+                                    );
+                                  }
+                                }, 20);
+                              }, 2500);
                             }, 1800);
+
+                            //Speech after defeated
 
                             //clearGame();
 
@@ -1166,9 +1357,9 @@
                         };
 
                         // ====== Minion spawner ======
-                        // ====== Minion spawner ======
                         const loseLine = 95; // vh
                         const minionSpeed = 0.4;
+                        // const minionSpeed = 0.1;
 
                         // boss horizontal safe zone
                         const bossLeft = 15; // vw
@@ -1243,14 +1434,16 @@
                           };
                         }, 1000); // spawn every 3 sec
                       },
-                      -900,
-                      90
+                      50,
+                      -100,
+                      "big"
                     );
                   });
-                }, 6900);
+                }, 6900); // Last speech before final battle
               },
               -220,
-              70
+              70,
+              "no"
             );
 
             speech.innerText = "It's here!";
@@ -1308,8 +1501,9 @@
         enemy,
         lines,
         onFinish,
-        offsetX = 8,
-        offsetY = 0
+        offsetX = 0,
+        offsetY = 0,
+        big
       ) {
         let index = 0;
 
@@ -1319,8 +1513,14 @@
         function update() {
           bubble.innerText = lines[index];
           const rect = enemy.getBoundingClientRect();
-          bubble.style.left = rect.right + offsetX + "px";
-          bubble.style.top = rect.top + rect.height / 4 + offsetY + "px";
+
+          if (big == "no") {
+            bubble.style.top = rect.top + rect.height / 4 + offsetY + "px";
+            bubble.style.left = rect.right + offsetX + "px";
+          } else {
+            bubble.style.top = rect.top + offsetY + "px";
+            bubble.style.right = offsetX + "px";
+          }
         }
 
         update();
