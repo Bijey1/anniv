@@ -1408,7 +1408,7 @@
                                                                 } else if (
                                                                   clicks == 4
                                                                 ) {
-                                                                  metal.play();
+                                                                  //metal.play();
                                                                   speech.style.display =
                                                                     "none";
                                                                   cageImg.src =
@@ -1420,19 +1420,18 @@
                                                                   setTimeout(
                                                                     () => {
                                                                       //Player fallen from cage
-                                                                      playerImg.src =
-                                                                        "assets/jumpingVj.gif";
 
                                                                       setTimeout(
                                                                         () => {
                                                                           //After jumping animation
                                                                           playerImg.src =
-                                                                            "assets/happyVj.png";
+                                                                            "assets/jumpingVj.gif";
                                                                           //Thank you for saving me
                                                                           enemySpeechLikeSpeech(
                                                                             player,
                                                                             [
                                                                               "Thank you For Saving me Mahal",
+                                                                              "Thank you for your efforts to save me",
                                                                             ],
                                                                             () => {
                                                                               playerImg.src =
