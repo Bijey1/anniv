@@ -14,20 +14,21 @@
       }
 
       /* INTRO GIF */
-      #intro-gif {
+      #intro {
         position: fixed;
         inset: 0;
-        background: black;
+        background: black; /* cinematic */
         display: flex;
-        justify-content: center;
         align-items: center;
-        z-index: 999;
+        justify-content: center;
+        z-index: 100;
       }
 
-      #intro-gif img {
-        width: 100vw;
-        height: 100vh;
-        object-fit: cover;
+      #intro img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* VERY IMPORTANT */
+        image-rendering: pixelated;
       }
 
       /* GAME */
@@ -511,15 +512,47 @@
         font-family: serif;
         color: #222;
       }
+
+      .bg-speech {
+        position: fixed;
+        background: white;
+        color: black;
+        padding: 3px 15px;
+        font-weight: bold;
+        border-radius: 10px;
+        font-size: 20px;
+        min-width: 10px;
+        max-width: 170px;
+        z-index: 9999;
+      }
+
+      .bg-speech.left::after {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        left: 30px;
+        border-width: 10px 10px 0;
+        border-style: solid;
+        border-color: rgba(255, 255, 255, 0.95) transparent transparent;
+      }
+      .bg-speech.right::after {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        right: 30px;
+        border-width: 10px 10px 0;
+        border-style: solid;
+        border-color: rgba(255, 255, 255, 0.95) transparent transparent;
+      }
     </style>
   </head>
 
   <body>
-    <!-- INTRO CUTSCENE 
-    <div id="intro-gif">
-      <img src="boss-kidnap.gif" alt="Boss kidnaps me" />
+    <!-- INTRO CUTSCENE -->
+    <div id="intro">
+      <img id="cutS" src="assets/intro1.png" alt="Boss kidnaps me" />
     </div>
--->
+
     <!-- GAME -->
     <div id="game">
       <div id="boss-hp">
@@ -582,15 +615,122 @@
       let objects = [];
       let lost = false;
 
+      const cuts = document.getElementById("cutS");
+      const intro = document.getElementById("intro");
+
       //////////////// INTRO //////////////////
-      /*
-      setTimeout(() => {
-        document.getElementById("intro-gif").style.display = "none";
-        startLevel();
-      }, 3000); // match GIF length
-      */
-      //document.getElementById("intro-gif").style.display = "none";
-      startLevel();
+      function introCutScene() {
+        backgroundSpeech(
+          [
+            "Helloo Bebii.",
+            "Happy Anniversaryy.",
+            "Thank you po for everyting",
+            "Thank you for your efforts",
+            "Thank you for your sacrifices",
+            "I LOVE YOU BEBI",
+          ],
+          () => {
+            //Kiss intro
+            //2nd scene
+            cuts.src = "assets/kissIntro2.gif";
+            setTimeout(() => {
+              backgroundSpeech(
+                ["YAWA.", "What was that??"],
+                () => {
+                  //Jonghan entered 3rd Scence
+                  //3rd scene
+                  cuts.src = "assets/jongEnter3.gif";
+                  setTimeout(() => {
+                    backgroundSpeech(
+                      [
+                        //Dialog ng 3rd scene
+                        "MWAHAHA!!",
+                        "Ako to zi Jeonghan",
+                        "Anong Anniversary",
+                        "Olol",
+                        "Hindi maare",
+                        "Boys",
+                        "Kunin nyo yang bebot ni litus",
+                        "MWAHAHAA!!!",
+                      ],
+                      () => {
+                        //4th scene
+                        cuts.src = "assets/vjKulong4.gif";
+                      },
+                      "right",
+                      "70%", //x
+                      "40%" //y
+                    ); //end dialog 3rd
+                  }, 7000);
+                },
+                "right",
+                "43%", //x
+                "42%" //y
+              ); //end dialog 2nd
+            }, 6500);
+          }, //first scene
+          "right",
+          "60%", //x
+          "42%" //y
+        );
+      }
+
+      introCutScene();
+
+      // startLevel(); start of level
+
+      function backgroundSpeech(
+        lines,
+        onFinish,
+        dir,
+        x = "50%",
+        y = "75%",
+        anchor = "center"
+      ) {
+        let index = 0;
+
+        const bubbleIn = document.createElement("div");
+        bubbleIn.className = "bg-speech";
+
+        bubbleIn.innerText = lines[index];
+
+        if (dir == "left") {
+          bubbleIn.classList.add("left");
+        } else {
+          bubbleIn.classList.add("right");
+        }
+
+        // Positioning
+        bubbleIn.style.left = x;
+        bubbleIn.style.top = y;
+
+        if (anchor === "center") {
+          bubbleIn.style.transform = "translate(-50%, -50%)";
+        } else if (anchor === "bottom") {
+          bubbleIn.style.transform = "translate(-50%, 0)";
+        }
+
+        document.body.appendChild(bubbleIn);
+
+        function next() {
+          index++;
+          if (index >= lines.length) {
+            cleanup();
+            if (onFinish) onFinish();
+          } else {
+            bubbleIn.innerText = lines[index];
+          }
+        }
+
+        function cleanup() {
+          bubbleIn.remove();
+          document.removeEventListener("pointerdown", next);
+        }
+
+        // Tap anywhere to continue
+
+        document.addEventListener("pointerdown", next);
+      }
 
       //////////////// GAME CORE //////////////////
       function clearGame() {
