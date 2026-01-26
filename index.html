@@ -544,6 +544,15 @@
         border-style: solid;
         border-color: rgba(255, 255, 255, 0.95) transparent transparent;
       }
+      #fadeOverlay {
+        position: fixed;
+        inset: 0;
+        background: #000; /* black screen */
+        opacity: 1; /* start fully visible */
+        z-index: 9999;
+        transition: opacity 1s ease; /* smooth fade */
+        pointer-events: none; /* allow clicks to pass through if needed */
+      }
     </style>
   </head>
 
@@ -618,6 +627,95 @@
       const cuts = document.getElementById("cutS");
       const intro = document.getElementById("intro");
 
+      // At the start of your script, before any scenes play
+      const preloadedGifs = {};
+      //startLevel();
+
+      function preloadGifs(sources) {
+        return Promise.all(
+          sources.map((src) => {
+            return new Promise((resolve) => {
+              const img = new Image();
+              img.onload = () => {
+                preloadedGifs[src] = img.src;
+                resolve();
+              };
+              img.src = src;
+            });
+          })
+        );
+      }
+
+      // Preload everything first
+      preloadGifs([
+        "assets/kissIntro2.gif",
+        "assets/jongEnter3.gif",
+        "assets/damagedJong.gif",
+
+        "assets/goons.gif",
+        "assets/jongBig.gif",
+        "assets/jongIdle.gif",
+        "assets/jumpingVj.gif",
+
+        "assets/kissVj.gif",
+        "assets/sideWalk.gif",
+        "assets/sword_cut.gif",
+        "assets/vjKulong4.gif",
+        "assets/finalIntro.gif",
+        // ... add all your other GIF paths here
+      ]).then(() => {
+        // Start your scenes after everything is loaded
+        introCutScene();
+      });
+
+      function fadeIn(duration = 1000) {
+        const overlay = document.getElementById("fadeOverlay");
+        overlay.style.transition = `opacity ${duration}ms ease`;
+        overlay.style.opacity = 0; // fade to transparent
+        setTimeout(() => {
+          overlay.style.display = "none"; // hide overlay after fade
+        }, duration);
+      }
+
+      function fadeOut(duration = 1000) {
+        const overlay = document.getElementById("fadeOverlay");
+        overlay.style.display = "block";
+        overlay.style.transition = `opacity ${duration}ms ease`;
+        overlay.style.opacity = 1; // fade to black
+      }
+      function fadeINFadeOut(duration = 800, callback) {
+        // Create overlay
+        setTimeout(() => {
+          intro.remove();
+          cuts.style.display = "none"; // hide overlay after fade
+        }, 1500);
+
+        const overlay = document.createElement("div");
+        overlay.style.position = "fixed";
+        overlay.style.inset = "0";
+        overlay.style.background = "#000"; // black fade
+        overlay.style.opacity = "0";
+        overlay.style.transition = `opacity ${duration}ms ease`;
+        overlay.style.zIndex = 9999;
+        document.body.appendChild(overlay);
+
+        // Fade in
+        requestAnimationFrame(() => {
+          overlay.style.opacity = "1";
+        });
+
+        // Wait for fade in + optional pause
+        setTimeout(() => {
+          // Fade out
+          overlay.style.opacity = "0";
+
+          // Wait for fade out to finish
+          setTimeout(() => {
+            overlay.remove();
+            if (callback) callback();
+          }, duration);
+        }, duration + 200); // pause for 200ms at full fade
+      }
       //////////////// INTRO //////////////////
       function introCutScene() {
         backgroundSpeech(
@@ -656,6 +754,45 @@
                       () => {
                         //4th scene
                         cuts.src = "assets/vjKulong4.gif";
+                        setTimeout(() => {
+                          backgroundSpeech(
+                            [
+                              //Dialog ng 3rd scene
+                              "MWAHAHA!!",
+                              "Nakidnap ko na sya",
+                              "Kung gusto mo pa sya maktia",
+                              "Iligtas mo sya",
+                              "MWAHAHAHA!!",
+                            ],
+                            () => {
+                              cuts.src = "assets/finalIntro.gif";
+                              //FINAL PART INTRO
+                              setTimeout(() => {
+                                backgroundSpeech(
+                                  [
+                                    //Dialog ng 3rd scene
+                                    "OH SHET",
+                                    "IM COMING",
+                                    "MY POGING BOYPREN",
+                                  ],
+                                  () => {
+                                    //START NG GAME
+
+                                    fadeINFadeOut(2500, () => {
+                                      startLevel(); // your game starts here
+                                    });
+                                  },
+                                  "left",
+                                  "20%", //x
+                                  "40%" //y
+                                );
+                              }, 4000);
+                            },
+                            "right",
+                            "70%", //x
+                            "40%" //y
+                          ); //end dialog 4th, NAKIDNAP NA
+                        }, 8000);
 
                         //DITO AKO NAG TAPOS
                       },
@@ -677,9 +814,7 @@
         );
       }
 
-      introCutScene();
-
-      // startLevel(); start of level
+      // introCutScene();
 
       function backgroundSpeech(
         lines,
@@ -758,7 +893,7 @@
       lostSfx.src = "assets/lost.mp3";
       damage.src = "assets/damage.mp3";
       ending.src = "assets/endingPixel.mp3";
-      punch.src = "assets/punch.mp3";
+      punch.src = "assets/flyPunch.mp3";
       fly.src = "assets/fly.mp3";
       metal.src = "assets/metalBreak.mp3";
       kiss.src = "assets/kiss.mp3";
@@ -797,8 +932,8 @@
           console.log("nag run");
           level2();
         } else if (level === 3) {
-          level3();
-          // tempo();
+          //level3();
+          tempo();
         } else if (level === 4) level4();
         else endGame();
       }
@@ -938,8 +1073,8 @@
             if (y >= loseLine) {
               gameOver = true;
               clearInterval(moveInterval);
-              showOverlay("Oh no! They got past you 💔");
               lost = true;
+              showOverlay("Oh no! They got past you 💔");
             }
           }, 20);
 
@@ -953,6 +1088,7 @@
               cleanupTapEffect();
 
               if (wave === 3) {
+                lost = false;
                 showOverlay("Nice! Keep going!");
               } else {
                 const nextEnemyCount = wave === 1 ? 19 : wave === 2 ? 30 : 0;
@@ -1142,7 +1278,7 @@
         const correct = Math.floor(Math.random() * keyCount);
 
         // TIMER BAR SETTINGS
-        let timeLeft = 15; // seconds
+        let timeLeft = 20; // seconds
         const timerBar = document.createElement("div");
         timerBar.id = "level3-timer-bar";
         timerBar.style.position = "absolute";
