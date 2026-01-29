@@ -1023,7 +1023,7 @@
         waveIntroShown = false;
         if (lost) {
           if (level == 4) {
-            rivalSpeech.play();
+            cow.play();
             level = 4;
 
             startLevel();
@@ -1038,7 +1038,8 @@
         } else {
           level++;
           if (level == 4) {
-            rivalSpeech.play();
+            cow.currentTime = 0;
+            cow.play();
           }
         }
         startLevel();
@@ -1612,8 +1613,8 @@
                 "예쁘다",
               ],
               () => {
-                rivalSpeech.pause();
-                rivalSpeech.currentTime = 0;
+                cow.pause();
+                cow.currentTime = 0;
                 // AFTER DIALOG FINISHES
 
                 jongImg.src = "assets/jongBig.gif";
