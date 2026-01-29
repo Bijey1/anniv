@@ -570,11 +570,58 @@
         transition: opacity 1s ease; /* smooth fade */
         pointer-events: none; /* allow clicks to pass through if needed */
       }
+      #tapToStart {
+        position: fixed;
+        inset: 0;
+        background: black;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+
+        opacity: 1;
+        transition: opacity 1.2s ease;
+      }
+
+      #tapToStart.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .tap-text {
+        text-align: center;
+
+        /* Dynamic sizing */
+
+        letter-spacing: 0.2em;
+
+        color: white;
+
+        font-size: clamp(18px, 5vw, 28px);
+
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 0.4;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.4;
+        }
+      }
     </style>
   </head>
 
   <body>
-    <!-- INTRO CUTSCENE   -->
+    <!-- INTRO CUTSCENE  -->
+    <div id="tapToStart">
+      <div class="tap-text">Tap anywhere Bebi</div>
+    </div>
+
     <div id="intro">
       <img id="cutS" src="assets/intro1.png" alt="Boss kidnaps me" />
     </div>
@@ -606,7 +653,8 @@
       <div class="credits-content">
         <h2>HAPPY ANNIVERSARY!!!</h2>
 
-        <p class="thanks">Thank you Bebi for playing. Sana po Nagusuhan mo</p>
+        <p class="thanks">Thank you Bebi for playing.</p>
+        <p class="thanks">Sana po nagustuhan mo po tong Goofy ahh game.</p>
         <p class="thanks">I LOVE YOU</p>
 
         <p style="margin-top: 50px; font-size: 14px">
@@ -639,6 +687,28 @@
       // At the start of your script, before any scenes play
       const preloadedGifs = {};
       // startLevel();
+
+      function startIntroSequence() {
+        const startScreen = document.getElementById("tapToStart");
+
+        function begin() {
+          home.loop = true;
+          home.play();
+          // remove listeners so it only triggers once
+          document.removeEventListener("click", begin);
+
+          // fade out
+          startScreen.classList.add("fade-out");
+
+          // after fade, remove and start cutscene
+          setTimeout(() => {
+            startScreen.remove();
+            introCutScene();
+          }, 1200);
+        }
+
+        document.addEventListener("click", begin);
+      }
 
       function preloadGifs(sources) {
         return Promise.all(
@@ -674,7 +744,9 @@
         // ... add all your other GIF paths here
       ]).then(() => {
         // Start your scenes after everything is loaded
-        introCutScene();
+
+        startIntroSequence();
+        //startLevel();
       });
 
       function fadeIn(duration = 1000) {
@@ -737,73 +809,100 @@
             "I LOVE YOU BEBI",
           ],
           () => {
+            home.pause(); // stop playback
+            home.currentTime = 0; // rewind to beginning
             //Kiss intro
             //2nd scene
             cuts.src = "assets/kissIntro2.gif";
+            setTimeout(() => {
+              damage.play();
+            }, 5000);
             setTimeout(() => {
               backgroundSpeech(
                 ["YAWA.", "What was that??"],
                 () => {
                   //Jonghan entered 3rd Scence
                   //3rd scene
+
+                  damage.loop = true;
+                  damage.play();
                   cuts.src = "assets/jongEnter3.gif";
+                  setTimeout(() => {
+                    damage.loop = false;
+                    damage.pause;
+                  }, 4500);
                   setTimeout(() => {
                     backgroundSpeech(
                       [
                         //Dialog ng 3rd scene
                         "MWAHAHA!!",
-                        "Ako to zi Jeonghan",
-                        "Anong Anniversary",
-                        "Olol",
-                        "Hindi maare",
-                        "Boys",
-                        "Kunin nyo yang bebot ni litus",
-                        "MWAHAHAA!!!",
                       ],
                       () => {
-                        //4th scene
-                        cuts.src = "assets/vjKulong4.gif";
-                        setTimeout(() => {
-                          backgroundSpeech(
-                            [
-                              //Dialog ng 3rd scene
-                              "MWAHAHA!!",
-                              "Nakidnap ko na sya",
-                              "Kung gusto mo pa sya maktia",
-                              "Iligtas mo sya",
-                              "MWAHAHAHA!!",
-                            ],
-                            () => {
-                              cuts.src = "assets/finalIntro.gif";
-                              //FINAL PART INTRO
-                              setTimeout(() => {
-                                backgroundSpeech(
-                                  [
-                                    //Dialog ng 3rd scene
-                                    "OH SHET",
-                                    "IM COMING",
-                                    "MY POGING BOYPREN",
-                                  ],
-                                  () => {
-                                    //START NG GAME
+                        cow.play();
+                        backgroundSpeech(
+                          [
+                            //Dialog ng 3rd scene
 
-                                    fadeINFadeOut(2500, () => {
-                                      startLevel(); // your game starts here
-                                    });
-                                  },
-                                  "left",
-                                  "20%", //x
-                                  "40%", //y
-                                );
-                              }, 4000);
-                            },
-                            "right",
-                            "70%", //x
-                            "40%", //y
-                          ); //end dialog 4th, NAKIDNAP NA
-                        }, 8000);
+                            "MWHAHWAA!!",
+                            "Ako to zi JEONGHAN",
+                            "Anong Anniversary",
+                            "Olol",
+                            "Hindi maare",
+                            "Boys",
+                            "Kunin nyo yang bebot ni litus",
+                            "MWAHAHAA!!!",
+                          ],
+                          () => {
+                            //4th scene
+                            cuts.src = "assets/vjKulong4.gif";
+                            setTimeout(() => {
+                              backgroundSpeech(
+                                [
+                                  //Dialog ng 3rd scene
+                                  "MWAHAHA!!",
+                                  "Nakidnap ko na sya",
+                                  "Kung gusto mo pa sya maktia",
+                                  "Iligtas mo sya",
+                                  "MWAHAHAHA!!",
+                                ],
+                                () => {
+                                  cuts.src = "assets/finalIntro.gif";
+                                  //FINAL PART INTRO
+                                  setTimeout(() => {
+                                    backgroundSpeech(
+                                      [
+                                        //Dialog ng 3rd scene
+                                        "OH SHET",
+                                        "IM COMING",
+                                        "MY POGING BOYPREN",
+                                      ],
+                                      () => {
+                                        //START NG GAME
+                                        cow.pause();
 
-                        //DITO AKO NAG TAPOS
+                                        fadeINFadeOut(2500, () => {
+                                          startLevel(); // your game starts here
+                                          mainBattle.play();
+                                        });
+                                      },
+                                      "left",
+                                      "20%", //x
+                                      "40%", //y
+                                    );
+                                  }, 4000);
+                                },
+                                "right",
+                                "70%", //x
+                                "40%", //y
+                              ); //end dialog 4th, NAKIDNAP NA
+                            }, 8000);
+
+                            //DITO AKO NAG TAPOS
+                          },
+                          "right",
+                          "70%", //x
+                          "40%", //y
+                        ); //end dialog 3rd
                       },
                       "right",
                       "70%", //x
@@ -897,6 +996,16 @@
       const fly = new Audio();
       const kiss = new Audio();
       const metal = new Audio();
+      const home = new Audio();
+      const cow = new Audio();
+      const mainBattle = new Audio("assets/mainBattle.mp3");
+      const oof = new Audio("assets/oof.mp3");
+
+      home.src = "assets/home.mp3";
+      cow.src = "assets/cowboy.mp3";
+      rivalSpeech.src = "assets/rival.mp3";
+      rivalBg.src = "assets/bone.mp3";
+
       rivalSpeech.src = "assets/rival.mp3";
       rivalBg.src = "assets/bone.mp3";
       lostSfx.src = "assets/lost.mp3";
@@ -908,6 +1017,8 @@
       kiss.src = "assets/kiss.mp3";
 
       nextBtn.onclick = () => {
+        mainBattle.pause();
+        mainBattle.currentTime = 0;
         overlay.style.display = "none";
         waveIntroShown = false;
         if (lost) {
@@ -940,11 +1051,14 @@
         clearGame();
 
         if (level === 1) {
+          mainBattle.play();
           level1(9);
         } else if (level === 2) {
+          mainBattle.play();
           console.log("nag run");
           level2();
         } else if (level === 3) {
+          mainBattle.play();
           level3();
           //tempo();
         } else if (level === 4) level4();
@@ -1094,12 +1208,13 @@
               gameOver = true;
               clearInterval(moveInterval);
               lost = true;
-              showOverlay("Oh no! They got past you 💔");
+              showOverlay("Oh no! They got past you Bebe");
             }
           }, 20);
 
           // Tap to destroy
           e.onclick = () => {
+            oof.play();
             clearInterval(moveInterval);
             e.remove();
             objects = objects.filter((o) => o !== e);
@@ -1244,6 +1359,7 @@
                 keypadBtn.remove();
                 doorImg.src = "assets/door.png";
                 speech.innerText = "You remembered…  Break the door!";
+                speech.style.background = "white";
               } else {
                 panel.classList.add("shake");
                 setTimeout(() => panel.classList.remove("shake"), 300);
@@ -1270,6 +1386,7 @@
         // ====== BREAK DOOR ======
         wall.onclick = () => {
           if (!unlocked) return;
+          damage.play();
 
           wall.style.transform = "translateX(-20px)";
           setTimeout(() => (wall.style.transform = "none"), 100);
@@ -1450,7 +1567,7 @@
         let maxHP = 60;
         let hp = maxHP;
 
-        hp = 5;
+        //hp = 5;
 
         // ====== BOSS ======
         const boss = document.createElement("div");
@@ -1940,7 +2057,7 @@
                             minion.remove();
                             objects = objects.filter((o) => o !== minion);
                           };
-                        }, 1000); // spawn every 3 sec
+                        }, 1200); // spawn every 3 sec
                       },
                       50,
                       -100,
