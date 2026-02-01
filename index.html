@@ -1194,7 +1194,7 @@
           objects.push(e);
 
           // Slow downward movement
-          const speed = 0.1 + Math.random() * 0.15;
+          const speed = 0.1 + Math.random() * 0.13;
 
           const moveInterval = setInterval(() => {
             if (gameOver) {
@@ -1215,9 +1215,8 @@
 
           // Tap to destroy
           e.onclick = () => {
-            oof.play();
             clearInterval(moveInterval);
-            e.remove();
+
             objects = objects.filter((o) => o !== e);
 
             if (!objects.length && !gameOver) {
@@ -1387,7 +1386,7 @@
         // ====== BREAK DOOR ======
         wall.onclick = () => {
           if (!unlocked) return;
-          damage.play();
+          // damage.play();
 
           wall.style.transform = "translateX(-20px)";
           setTimeout(() => (wall.style.transform = "none"), 100);
@@ -1563,7 +1562,7 @@
         game.appendChild(litus);
         objects.push(litus);
 
-        const speed = 0.25; // moving speed
+        const speed = 0.2; // moving speed
 
         let maxHP = 60;
         let hp = maxHP;
@@ -1676,12 +1675,12 @@
 
                         // ====== Boss tapping ======
                         boss.onclick = () => {
-                          damage.play();
+                          //damage.play();
                           boss.classList.add("shake");
                           setTimeout(() => {
                             boss.classList.remove("shake");
-                            damage.pause();
-                            damage.currentTime = 0;
+                            // damage.pause();
+                            // damage.currentTime = 0;
                           }, 200);
                           hp--;
                           hpFill.style.width = (hp / maxHP) * 100 + "%";
@@ -1811,7 +1810,7 @@
                                                               "auto";
                                                             cage.onclick =
                                                               () => {
-                                                                damage.play();
+                                                                //damage.play();
                                                                 clicks++;
                                                                 cage.classList.add(
                                                                   "shake",
@@ -1821,8 +1820,8 @@
                                                                     cage.classList.remove(
                                                                       "shake",
                                                                     );
-                                                                    damage.pause();
-                                                                    damage.currentTime = 0;
+                                                                    // damage.pause();
+                                                                    // damage.currentTime = 0;
                                                                   },
 
                                                                   300,
