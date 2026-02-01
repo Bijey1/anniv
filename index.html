@@ -1053,7 +1053,7 @@
 
         if (level === 1) {
           mainBattle.play();
-          level1(9);
+          level1(5);
         } else if (level === 2) {
           mainBattle.play();
           console.log("nag run");
@@ -1194,7 +1194,7 @@
           objects.push(e);
 
           // Slow downward movement
-          const speed = 0.1 + Math.random() * 0.13;
+          const speed = 0.1 + Math.random() * 0.12;
 
           const moveInterval = setInterval(() => {
             if (gameOver) {
@@ -1227,7 +1227,7 @@
                 lost = false;
                 showOverlay("Nice! Keep going!");
               } else {
-                const nextEnemyCount = wave === 1 ? 19 : wave === 2 ? 30 : 0;
+                const nextEnemyCount = wave === 1 ? 7 : wave === 2 ? 8 : 0;
 
                 const nextWave = wave + 1;
 
@@ -1563,9 +1563,9 @@
         game.appendChild(litus);
         objects.push(litus);
 
-        const speed = 0.2; // moving speed
+        const speed = 0.1; // moving speed
 
-        let maxHP = 60;
+        let maxHP = 30;
         let hp = maxHP;
 
         //hp = 5;
